@@ -6,3 +6,5 @@ GA_CW_Venv/
 *.egg
 *.egg-info/
 /build
+dustmaps/
+data/ 
