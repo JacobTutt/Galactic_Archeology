@@ -1024,3 +1024,443 @@ def plot_sky_density_FS(gaia_data, bins=200, contrast = (0,100), binning_method=
     # Adjust layout for publication quality
     plt.tight_layout()
     plt.show()
+
+
+    ### RGB Stars filtering
+
+def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
+    """
+    Generates multiple sky density visualizations using HEALPix:
+    
+    1. **All-sky density map** (Mollweide projection) - visualizing star distribution in Galactic coordinates.
+    2. **False-color RGB composite** (Aitoff projection) - highlighting stellar populations in different brightness bins.
+    3. **Histogram of magnitudes** - showing how stars are divided into RGB bins.
+    4. **Histogram of sky density** - illustrating the distribution of star densities across HEALPix pixels.
+    5. **Rectangular projection of the RGB composite** - displaying Galactic coordinates without distortion.
+
+    Parameters:
+    -----------
+    gaia_data : pd.DataFrame
+        Pandas DataFrame containing:
+        - 'l' : Galactic longitude (degrees)
+        - 'b' : Galactic latitude (degrees)
+        - 'dered_G' : Dereddened Gaia G-band magnitude
+    nside : int, optional (default=128)
+        HEALPix resolution parameter. Higher values provide finer detail.
+    contrast : tuple, optional (default=(5, 95))
+        Percentile range for adjusting color contrast.
+    vmin, vmax : float, optional (default=20, 40)
+        Minimum and maximum density values for histogram scaling.
+    binning_method : str, optional (default="linear")
+        Binning method for RGB classification. Options:
+        - "linear" : Equal-width bins.
+        - "normal" : Bins based on Gaussian distribution of magnitudes.
+        - tuple : Custom bin edges.
+    cmap_density : str, optional (default="magma")
+        Colormap for the density map.
+    cmap_rgb : str, optional (default="plasma")
+        Alternative colormap for RGB mapping.
+    log_scale : bool, optional (default=True)
+        If True, applies logarithmic scaling to enhance density contrast.
+
+    Returns:
+    --------
+    None. Generates and displays multiple sky density plots.
+    
+    Notes:
+    ------
+    - Uses HEALPix for efficient pixelization of celestial sphere data.
+    - RGB composite maps classify stars into three magnitude bins.
+    - The rectangular projection enables direct interpretation of Galactic coordinates.
+    """
+
+    # ------------------------------
+    # GLOBAL PLOTTING PARAMETERS
+    # ------------------------------
+    figsize_wide = (10, 6)
+    figsize_moll = (12, 6)
+    fontsize_labels = 16
+    fontsize_ticks = 14
+    fontsize_title = 18
+    tick_length = 6
+    tick_width = 1.5
+
+    # ------------------------------
+    # DATA EXTRACTION
+    # ------------------------------
+    l = gaia_data['l'].values
+    b = gaia_data['b'].values
+    ra = gaia_data['ra'].values
+    dec = gaia_data['dec'].values
+    mag = gaia_data['dered_G'].values
+    pm = gaia_data['pm'].values
+    dered_G = gaia_data['dered_G'].values
+    dered_BP_RP = gaia_data['dered_BP_RP'].values
+
+
+    ### --- Plot 1 ----
+    ra_range=[0,360]
+    dec_range=np.array([-90,90])
+    rev_rar_range=np.flip(ra_range)
+    nra = int(1*360)
+    ndec = int(1*180)
+
+    fig, ax = plt.subplots(figsize=figsize_wide)
+
+    den, xedges, yedges = np.histogram2d(ra, dec, bins=(nra, ndec))
+    # For bins that are empty set to a very small value
+    w0 = den == 0
+    wn0 = den !=0
+    den[w0] = 1e-6
+    # Apply log scaling
+    den_log = np.log10(den)
+
+    ax.pcolormesh(xedges, yedges, den_log.T, cmap= cmap , vmin = np.nanpercentile(den_log[wn0], 10), \
+                vmax = np.nanpercentile(den_log[wn0], 90))
+
+    ax.set_xlim(rev_rar_range)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel('Right Ascension (RA) [deg]', fontsize=fontsize_labels)
+    ax.set_ylabel('Declination (Dec) [deg]', fontsize=fontsize_labels)
+    ax.set_title('All-Sky Density in Equatorial Coordinates', fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+
+    ###  --- Plot 2 ----
+    ra_range_shifted = [-180, 180]  # updated range
+
+    # Shift longitudes so Galactic center (l=0) is centered
+    l_shifted = (-l + 180) % 360 - 180
+    b_vals = b
+
+    # Plot
+    fig, ax = plt.subplots(figsize=figsize_wide)
+
+    den, xedges, yedges = np.histogram2d(l_shifted, b_vals, bins=(nra, ndec), range=[ra_range_shifted, dec_range])
+
+
+    ax.pcolormesh(xedges, yedges, den.T, cmap=cmap, vmin = np.nanpercentile(den[wn0], 5), \
+                vmax = np.nanpercentile(den[wn0], 90))
+
+    # Axes
+
+    ax.set_xlim(ra_range_shifted)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel("Galactic Longitude (l) [deg]", fontsize=fontsize_labels)
+    ax.set_ylabel("Galactic Latitude (b) [deg]", fontsize=fontsize_labels)
+    ax.set_title("Galactic Density Map (l = 0° Centered)", fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+    ### ---- Plot 3 ----
+    # Create three sample grayscale images (arrays)
+    # Bins set up
+    pm_bins =  np.linspace(pm_cuts[0], pm_cuts[1], 4)  # Generate three bin edges
+
+    images = []
+    for i in range(3):
+        # Set the bin edges
+        filter_pm = (pm>pm_bins[i]) & (pm<pm_bins[i+1]) 
+        # Bin
+        den, x, y = np.histogram2d(np.array(ra[filter_pm]), np.array(dec[filter_pm]), bins=(nra, ndec))
+        wn0 = den !=0
+        log_den = np.log10(den)
+        # Apply log scaling
+        p5, p95 = np.percentile(log_den[wn0], [5, 95])
+        img_cur = np.clip(log_den, p5, p95)
+        img_cur = (img_cur - p5) / (p95 - p5)
+        # compute the image
+        images.append(img_cur.T)
+
+    # Stack the grayscale images to create an RGB image
+    rgb_image = np.dstack((images[0], images[1], images[2]))
+
+    # Plot
+    rgb_image_flipped = np.fliplr(rgb_image)
+    fig, ax = plt.subplots(figsize=figsize_wide)
+    ax.imshow(rgb_image, origin='lower', extent=[rev_rar_range[0], rev_rar_range[1], dec_range[0], dec_range[1]], aspect='auto', interpolation='bilinear')
+
+    ax.set_xlim(rev_rar_range)
+    ax.set_ylim(dec_range)
+
+    ax.set_xlabel('RA [deg]', fontsize=fontsize_labels)
+    ax.set_ylabel('Dec [deg]', fontsize=fontsize_labels)
+    ax.set_title("RGB Composite by Proper Motion (RA/Dec)", fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    ### ---- Plot 4 ----
+    images = []
+    for i in range(3):
+        filter_pm = (pm>pm_bins[i]) & (pm<pm_bins[i+1]) 
+        # Bin
+        den, x, y = np.histogram2d(np.array(l_shifted[filter_pm]), np.array(b[filter_pm]), bins=(nra, ndec))
+        wn0 = den !=0
+        log_den = np.log10(den)
+    # Rescale
+        p5, p95 = np.percentile(log_den[wn0], [5, 95])
+        img_cur = np.clip(log_den, p5, p95)
+        img_cur = (img_cur - p5) / (p95 - p5)
+    # Combine
+        images.append(img_cur.T)
+
+    # Stack the grayscale images to create an RGB image
+    rgb_image = np.dstack((images[0], images[1], images[2]))
+
+    # Plot
+    fig, ax = plt.subplots(figsize=figsize_wide)
+    ax.imshow(rgb_image, origin='lower', extent=[ra_range_shifted[0], ra_range_shifted[1], dec_range[0], dec_range[1]], aspect='auto', interpolation='bilinear')
+
+    ax.set_xlabel('RA', fontsize=16)
+    ax.set_ylabel('Dec', fontsize=16)
+
+    # Axes
+    ax.set_xlim(ra_range_shifted)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel("Galactic Longitude (l) [deg]", fontsize=fontsize_labels)
+    ax.set_ylabel("Galactic Latitude (b) [deg]", fontsize=fontsize_labels)
+    ax.set_title("RGB Composite by Proper Motion (Galactic Rectangular)", fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+
+    ### ---- Plot 5 ----
+    # Convert Galactic l to Mollweide format
+    l_transformed = (l + 180) % 360 - 180  # Shift to [-180, 180]
+    l_transformed = -l_transformed  # Flip to match Mollweide projection
+    l_rad = np.radians(l_transformed)
+    b_rad = np.radians(b)
+
+
+    # Proper motion bins for RGB channels
+    pm_bins =  np.linspace(pm_cuts[0], pm_cuts[1], 4)  
+    nlon, nlat = 360, 180  # Binning resolution
+
+    # Define bins for 2D histogram
+    lon_edges = np.linspace(-np.pi, np.pi, nlon + 1)
+    lat_edges = np.linspace(-np.pi/2, np.pi/2, nlat + 1)
+
+    # Create RGB channel images
+    images = []
+    for i in range(3):
+        mask = (pm > pm_bins[i]) & (pm < pm_bins[i+1])
+
+        # 2D histogram in Galactic l-b space
+        den, _, _ = np.histogram2d(l_rad[mask], b_rad[mask], bins=(lon_edges, lat_edges))
+
+        # Log scaling
+        wn0 = den > 0
+        den_log = np.zeros_like(den)
+        den_log[wn0] = np.log10(den[wn0])
+
+        # Normalize
+        p5, p95 = np.nanpercentile(den_log[wn0], [5,99])
+        img = np.clip(den_log, p5, p95)
+        img = (img - p5) / (p95 - p5)
+
+        images.append(img.T)
+
+    # Stack into RGB image
+    rgb_image = np.dstack((images[0], images[1], images[2]))
+
+    # Plot Mollweide projection
+    fig, ax = plt.subplots(figsize=figsize_moll, subplot_kw={'projection': 'mollweide'})
+    mesh = ax.pcolormesh(lon_edges, lat_edges, rgb_image, shading='auto')
+
+    # Add grid and labels
+    ax.grid(True, linestyle="dotted", alpha=0.5)
+    ax.set_title("Sky Density with False RGB by Proper Motion ", fontsize=fontsize_title)
+
+    tick_labels = ["-150°", "-120°", "-90°", "-60°", "-30°", "0°", "30°", "60°", "90°", "120°", "150°"]
+    tick_positions = np.radians([-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150])
+    ax.set_xticks(tick_positions)
+    ax.set_xticklabels(tick_labels, fontsize=fontsize_ticks)
+    ax.tick_params(axis='y', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_sky_density_proper_motion3(gaia_data, pm_cuts=[1, 3.5], cmap="inferno"):
+    """
+    Generates multiple sky density visualizations using HEALPix and standard histograms.
+    This version is formatted for publication with unified plotting aesthetics.
+    """
+
+    # ------------------------------
+    # GLOBAL PLOTTING PARAMETERS
+    # ------------------------------
+    figsize_wide = (16, 8)
+    figsize_moll = (14, 7)
+    fontsize_labels = 16
+    fontsize_ticks = 14
+    fontsize_title = 18
+    tick_length = 6
+    tick_width = 1.5
+
+    # ------------------------------
+    # DATA EXTRACTION
+    # ------------------------------
+    l = gaia_data['l'].values
+    b = gaia_data['b'].values
+    ra = gaia_data['ra'].values
+    dec = gaia_data['dec'].values
+    mag = gaia_data['dered_G'].values
+    pm = gaia_data['pm'].values
+    dered_G = gaia_data['dered_G'].values
+    dered_BP_RP = gaia_data['dered_BP_RP'].values
+
+    ### ---- Plot 1 ----
+    ra_range = [0, 360]
+    dec_range = np.array([-90, 90])
+    rev_rar_range = np.flip(ra_range)
+    nra = int(360)
+    ndec = int(180)
+
+    fig, ax = plt.subplots(figsize=figsize_wide)
+
+    den, xedges, yedges = np.histogram2d(ra, dec, bins=(nra, ndec))
+    den[den == 0] = 1e-6
+    den_log = np.log10(den)
+    wn0 = den != 0
+
+    ax.pcolormesh(xedges, yedges, den_log.T, cmap=cmap,
+                  vmin=np.nanpercentile(den_log[wn0], 10),
+                  vmax=np.nanpercentile(den_log[wn0], 90))
+
+    ax.set_xlim(rev_rar_range)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel('Right Ascension (RA) [deg]', fontsize=fontsize_labels)
+    ax.set_ylabel('Declination (Dec) [deg]', fontsize=fontsize_labels)
+    ax.set_title('All-Sky Density in Equatorial Coordinates', fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+
+
+    ### ---- Plot 2 ----
+    ra_range_shifted = [-180, 180]
+    l_shifted = (-l + 180) % 360 - 180
+    b_vals = b
+
+    fig, ax = plt.subplots(figsize=figsize_wide)
+
+    den, xedges, yedges = np.histogram2d(l_shifted, b_vals, bins=(nra, ndec), range=[ra_range_shifted, dec_range])
+    ax.pcolormesh(xedges, yedges, den.T, cmap=cmap,
+                  vmin=np.nanpercentile(den[den > 0], 5),
+                  vmax=np.nanpercentile(den[den > 0], 90))
+
+    ax.set_xlim(ra_range_shifted)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel("Galactic Longitude (l) [deg]", fontsize=fontsize_labels)
+    ax.set_ylabel("Galactic Latitude (b) [deg]", fontsize=fontsize_labels)
+    ax.set_title("Galactic Density Map (l = 0° Centered)", fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+    ### ---- Plot 3 ----
+    pm_bins = np.linspace(pm_cuts[0], pm_cuts[1], 4)
+
+    images = []
+    for i in range(3):
+        filter_pm = (pm > pm_bins[i]) & (pm < pm_bins[i + 1])
+        den, x, y = np.histogram2d(ra[filter_pm], dec[filter_pm], bins=(nra, ndec))
+        wn0 = den != 0
+        log_den = np.log10(den)
+        p5, p95 = np.percentile(log_den[wn0], [5, 95])
+        img_cur = np.clip(log_den, p5, p95)
+        img_cur = (img_cur - p5) / (p95 - p5)
+        images.append(img_cur.T)
+
+    rgb_image = np.fliplr(np.dstack((images[0], images[1], images[2])))
+
+    fig, ax = plt.subplots(figsize=figsize_wide)
+    ax.imshow(rgb_image, origin='lower',
+              extent=[rev_rar_range[0], rev_rar_range[1], dec_range[0], dec_range[1]],
+              aspect='auto', interpolation='bilinear')
+
+    ax.set_xlim(rev_rar_range)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel('RA [deg]', fontsize=fontsize_labels)
+    ax.set_ylabel('Dec [deg]', fontsize=fontsize_labels)
+    ax.set_title("RGB Composite by Proper Motion (RA/Dec)", fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    ### ---- Plot 4 ----
+    images = []
+    for i in range(3):
+        filter_pm = (pm > pm_bins[i]) & (pm < pm_bins[i + 1])
+        den, x, y = np.histogram2d(l_shifted[filter_pm], b[filter_pm], bins=(nra, ndec))
+        wn0 = den != 0
+        log_den = np.log10(den)
+        p5, p95 = np.percentile(log_den[wn0], [5, 95])
+        img_cur = np.clip(log_den, p5, p95)
+        img_cur = (img_cur - p5) / (p95 - p5)
+        images.append(img_cur.T)
+
+    rgb_image = np.dstack((images[0], images[1], images[2]))
+
+    fig, ax = plt.subplots(figsize=figsize_wide)
+    ax.imshow(rgb_image, origin='lower',
+              extent=[ra_range_shifted[0], ra_range_shifted[1], dec_range[0], dec_range[1]],
+              aspect='auto', interpolation='bilinear')
+
+    ax.set_xlim(ra_range_shifted)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel("Galactic Longitude (l) [deg]", fontsize=fontsize_labels)
+    ax.set_ylabel("Galactic Latitude (b) [deg]", fontsize=fontsize_labels)
+    ax.set_title("RGB Composite by Proper Motion (Galactic Rectangular)", fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+    ### ---- Plot 5 ----
+    l_transformed = (l + 180) % 360 - 180
+    l_transformed = -l_transformed
+    l_rad = np.radians(l_transformed)
+    b_rad = np.radians(b)
+
+    nlon, nlat = 360, 180
+
+    lon_edges = np.linspace(-np.pi, np.pi, nlon + 1)
+    lat_edges = np.linspace(-np.pi / 2, np.pi / 2, nlat + 1)
+
+    images = []
+    for i in range(3):
+        mask = (pm > pm_bins[i]) & (pm < pm_bins[i + 1])
+        den, _, _ = np.histogram2d(l_rad[mask], b_rad[mask], bins=(lon_edges, lat_edges))
+        wn0 = den > 0
+        den_log = np.zeros_like(den)
+        den_log[wn0] = np.log10(den[wn0])
+        p5, p95 = np.nanpercentile(den_log[wn0], [5, 99])
+        img = np.clip(den_log, p5, p95)
+        img = (img - p5) / (p95 - p5)
+        images.append(img.T)
+
+    rgb_image = np.dstack((images[0], images[1], images[2]))
+
+    fig, ax = plt.subplots(figsize=figsize_moll, subplot_kw={'projection': 'mollweide'})
+    mesh = ax.pcolormesh(lon_edges, lat_edges, rgb_image, shading='auto')
+
+    ax.grid(True, linestyle="dotted", alpha=0.5)
+    ax.set_title("RGB Sky Density by Proper Motion (Galactic Mollweide)", fontsize=fontsize_title)
+
+    tick_labels = ["-150°", "-120°", "-90°", "-60°", "-30°", "0°", "30°", "60°", "90°", "120°", "150°"]
+    tick_positions = np.radians([-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150])
+    ax.set_xticks(tick_positions)
+    ax.set_xticklabels(tick_labels, fontsize=fontsize_ticks)
+    ax.tick_params(axis='y', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
