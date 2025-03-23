@@ -1,0 +1,13 @@
+numpy
+pandas
+matplotlib
+astropy
+scipy
+healpy
+tqdm
+pickle
+galpy
+dustmaps
+astroquery
+Jupyter 
+ipykernel
