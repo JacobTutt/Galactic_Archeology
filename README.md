@@ -41,7 +41,7 @@ pip install -r requirements.txt
 ### 4. Set Up a Jupyter Notebook Kernel
 To ensure the virtual environment is recognised within Jupyter notebooks, set up a kernel:
 ```bash
-python -m ipykernel install --user --name=env --display-name "Python (M1 Coursework)"
+python -m ipykernel install --user --name=env --display-name "Python (GA/A4 Coursework)"
 ```
 
 ### 5. Run the Notebooks
