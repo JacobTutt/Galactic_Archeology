@@ -25,7 +25,7 @@
 - This file was used as an investigation into the quality of cuts chosen on later on in the investigation to verify that the desired population would be visible 
 
 ```sql
-SELECT 
+SELECT
   gs.source_id,
   gs.l, gs.b, gs.ra, gs.dec,
   gs.ra_error, gs.dec_error,
@@ -41,7 +41,7 @@ FROM gaiaedr3.gaia_source AS gs
 LEFT JOIN external.gaiaedr3_distance AS gd
   ON gs.source_id = gd.source_id
 WHERE 
-  gs.phot_g_mean_mag BETWEEN 10 AND 20.5 AND
+.  gs.phot_g_mean_mag BETWEEN 10 AND 20.5 AND
   gs.parallax < 0.1 AND
   gs.ruwe < 1.4 AND
   (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 16 AND
@@ -53,7 +53,7 @@ WHERE
   gs.random_index BETWEEN 0 AND 700000000;
   ```
 
-  ## `NGC1851` (Investigation to inform later cuts)
+  ## `NGC1851` (Investigation to inform later cuts  - from the same random subsample) 
   
   ```sql
   SELECT 
@@ -81,6 +81,49 @@ WHERE
   gs.random_index BETWEEN 0 AND 700000000;
   ```
 
+## `Allsky_Gaia_42481846` - Low Propermotion Cut (<4)
+
+
+```sql
+SELECT 
+  gs.source_id, gs.l, gs.b, gs.ra, gs.dec,
+  gs.ra_error, gs.dec_error,
+  gs.phot_g_mean_mag, gs.phot_bp_mean_mag, gs.phot_rp_mean_mag,
+  gs.parallax, gs.pmra, gs.pmdec, gs.pmra_error, gs.pmdec_error,
+  gd.r_med_photogeo, gd.r_hi_photogeo, gd.r_lo_photogeo
+FROM gaiaedr3.gaia_source AS gs
+LEFT JOIN external.gaiaedr3_distance AS gd
+  ON gs.source_id = gd.source_id
+WHERE
+  gs.phot_g_mean_mag BETWEEN 10 AND 20 AND
+  gs.parallax BETWEEN -0.1 AND 0.1 AND
+  gs.ruwe < 1.4 AND
+  (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 16;
+```
+## `Allsky_Gaia_4559940` - Low Propermotion Cut (<12)
+
+```sql
+SELECT 
+  gs.source_id, gs.l, gs.b, gs.ra, gs.dec,
+  gs.ra_error, gs.dec_error,
+  gs.phot_g_mean_mag, gs.phot_bp_mean_mag, gs.phot_rp_mean_mag,
+  gs.parallax, gs.parallax_error,
+  gs.pmra, gs.pmdec, gs.pmra_error, gs.pmdec_error,
+  gs.radial_velocity, gs.bp_rp,
+  gd.r_med_photogeo, gd.r_hi_photogeo, gd.r_lo_photogeo
+FROM gaiaedr3.gaia_source AS gs
+LEFT JOIN external.gaiaedr3_distance AS gd
+  ON gs.source_id = gd.source_id
+WHERE
+  gs.phot_g_mean_mag BETWEEN 10 AND 20.5 AND
+  gs.parallax BETWEEN -0.1 AND 0.1 AND
+  gs.ruwe < 1.4 AND
+  (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 144 AND
+  gd.r_med_photogeo IS NOT NULL AND
+  gs.random_index BETWEEN 0 AND 700000000;
+```
+
+
 ## `Allsky_Gaia_394217` - Sample with Radial Velocities
 
 ```sql
@@ -103,48 +146,6 @@ WHERE
   (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 16 AND
   gs.radial_velocity IS NOT NULL AND
   gd.r_med_photogeo IS NOT NULL;
-```
-
-## `Allsky_Gaia_42481846` - Low Propermotion Cut (<4)
-
-
-```sql
-SELECT 
-  gs.source_id, gs.l, gs.b, gs.ra, gs.dec,
-  gs.ra_error, gs.dec_error,
-  gs.phot_g_mean_mag, gs.phot_bp_mean_mag, gs.phot_rp_mean_mag,
-  gs.parallax, gs.pmra, gs.pmdec, gs.pmra_error, gs.pmdec_error,
-  gd.r_med_photogeo, gd.r_hi_photogeo, gd.r_lo_photogeo
-FROM gaiaedr3.gaia_source AS gs
-LEFT JOIN external.gaiaedr3_distance AS gd
-  ON gs.source_id = gd.source_id
-WHERE
-  gs.phot_g_mean_mag BETWEEN 10 AND 20 AND
-  gs.parallax BETWEEN -0.1 AND 0.1 AND
-  gs.ruwe < 1.4 AND
-  (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 16;
-```
-## `Allsky_Gaia_4559940
-
-```sql
-SELECT 
-  gs.source_id, gs.l, gs.b, gs.ra, gs.dec,
-  gs.ra_error, gs.dec_error,
-  gs.phot_g_mean_mag, gs.phot_bp_mean_mag, gs.phot_rp_mean_mag,
-  gs.parallax, gs.parallax_error,
-  gs.pmra, gs.pmdec, gs.pmra_error, gs.pmdec_error,
-  gs.radial_velocity, gs.bp_rp,
-  gd.r_med_photogeo, gd.r_hi_photogeo, gd.r_lo_photogeo
-FROM gaiaedr3.gaia_source AS gs
-LEFT JOIN external.gaiaedr3_distance AS gd
-  ON gs.source_id = gd.source_id
-WHERE
-  gs.phot_g_mean_mag BETWEEN 10 AND 20.5 AND
-  gs.parallax BETWEEN -0.3 AND 0.3 AND
-  gs.ruwe < 1.4 AND
-  (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 144 AND
-  gd.r_med_photogeo IS NOT NULL AND
-  gs.random_index BETWEEN 500000000 AND 685000000;
 ```
 
 --- 
