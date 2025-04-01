@@ -294,11 +294,13 @@ def rgb_filter(gaia_data_or_path, min_bp_rp=0.8, max_app_mag=18, max_abs_mag=5):
         total_bp_rp = counts["bp_rp"]
         total_abs_mag = counts["abs_mag"]
         total_app_mag = counts["app_mag"]
+        total_b_cut = counts["b_cut"]
         total_passed = counts["passed"]
 
         # Print final summary
         logging.info(
             f"\nTotal stars before filtering: {total_stars}\n"
+            f"Stars passing Galactic latitude cut (|b| > 10°): {total_b_cut} ({total_b_cut/total_stars:.2%})"
             f"Stars passing BP-RP color filter: {total_bp_rp} ({total_bp_rp/total_stars:.2%})\n"
             f"Stars passing apparent magnitude filter: {total_app_mag} ({total_app_mag/total_stars:.2%})\n"
             f"Stars passing absolute magnitude filter: {total_abs_mag} ({total_abs_mag/total_stars:.2%})\n"
@@ -333,39 +335,38 @@ def _apply_rgb_filter(batch_data, min_bp_rp, max_app_mag, max_abs_mag):
     Parameters:
         batch_data (pd.DataFrame): DataFrame containing Gaia photometric data.
         min_bp_rp (float): Minimum BP-RP color index.
-        max_bp_rp (float): Maximum BP-RP color index.
         max_app_mag (float): Maximum apparent magnitude.
         max_abs_mag (float): Maximum absolute magnitude.
 
     Returns:
-        np.ndarray: Filtered NumPy structured array containing only stars meeting the criteria.
+        pd.DataFrame: Filtered DataFrame containing only stars meeting the criteria.
         dict: Dictionary with counts for each filtering step.
     """
 
     bp_rp = batch_data["dered_BP_RP"]
     dered_G = batch_data["dered_G"]
     abs_mag = batch_data["M_G"]
+    b_lat = batch_data["b"]  # Galactic latitude in degrees
 
     # Apply individual filters
-    # Colour index filter
     mask_bp_rp = (bp_rp > min_bp_rp)
-    # Apparent magnitude filter
     mask_app_mag = dered_G < max_app_mag
-    # Absolute magnitude filter
     mask_abs_mag = abs_mag < max_abs_mag
+    mask_b_cut = np.abs(b_lat) > 10  # Filter for |b| > 10 degrees
 
-    # Combine filters
-    mask_total = mask_bp_rp & mask_app_mag & mask_abs_mag
+    # Combine all filters
+    mask_total = mask_bp_rp & mask_app_mag & mask_abs_mag & mask_b_cut
 
     # Count statistics
     counts = {
         "bp_rp": np.sum(mask_bp_rp),
         "app_mag": np.sum(mask_app_mag),
         "abs_mag": np.sum(mask_abs_mag),
+        "b_cut": np.sum(mask_b_cut),
         "passed": np.sum(mask_total),
     }
 
-    # Return only rows that pass the filters
+    # Return only rows that pass all filters
     return batch_data[mask_total], counts
 
 
@@ -1028,7 +1029,7 @@ def plot_sky_density_FS(gaia_data, bins=200, contrast = (0,100), binning_method=
 
     ### RGB Stars filtering
 
-def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
+def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno", min_count = 7, min_count_color = 5, max_count_color = 95):
     """
     Generates multiple sky density visualizations using HEALPix:
     
@@ -1077,8 +1078,8 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
     # ------------------------------
     # GLOBAL PLOTTING PARAMETERS
     # ------------------------------
-    figsize_wide = (10, 6)
-    figsize_moll = (12, 6)
+    figsize_wide = (9, 6)
+    figsize_moll = (11, 6)
     fontsize_labels = 16
     fontsize_ticks = 14
     fontsize_title = 18
@@ -1097,13 +1098,12 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
     dered_G = gaia_data['dered_G'].values
     dered_BP_RP = gaia_data['dered_BP_RP'].values
 
-
     ### --- Plot 1 ----
     ra_range=[0,360]
     dec_range=np.array([-90,90])
     rev_rar_range=np.flip(ra_range)
-    nra = int(1*360)
-    ndec = int(1*180)
+    nra = int(1*190)
+    ndec = int(1*95)
 
     fig, ax = plt.subplots(figsize=figsize_wide)
 
@@ -1114,6 +1114,25 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
     den[w0] = 1e-6
     # Apply log scaling
     den_log = np.log10(den)
+
+    # Remove low-count noise
+    den_log[den < min_count] = np.nan  # cleaner background
+
+
+    ax.pcolormesh(xedges, yedges, den_log.T, cmap= cmap , vmin = np.nanpercentile(den_log[wn0], 10), \
+                vmax = np.nanpercentile(den_log[wn0], 90))
+
+    ax.set_xlim(rev_rar_range)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel('Right Ascension (RA) [deg]', fontsize=fontsize_labels)
+    ax.set_ylabel('Declination (Dec) [deg]', fontsize=fontsize_labels)
+    ax.set_title('All-Sky Density in Equatorial Coordinates', fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+
+
 
     ax.pcolormesh(xedges, yedges, den_log.T, cmap= cmap , vmin = np.nanpercentile(den_log[wn0], 10), \
                 vmax = np.nanpercentile(den_log[wn0], 90))
@@ -1140,7 +1159,7 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
     fig, ax = plt.subplots(figsize=figsize_wide)
 
     den, xedges, yedges = np.histogram2d(l_shifted, b_vals, bins=(nra, ndec), range=[ra_range_shifted, dec_range])
-
+    
 
     ax.pcolormesh(xedges, yedges, den.T, cmap=cmap, vmin = np.nanpercentile(den[wn0], 5), \
                 vmax = np.nanpercentile(den[wn0], 90))
@@ -1159,6 +1178,39 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
 
 
 
+    ### --- Plot 1 AGAIN ----
+    ra_range=[0,360]
+    dec_range=np.array([-90,90])
+    rev_rar_range=np.flip(ra_range)
+    nra = int(1*360)
+    ndec = int(1*180)
+
+    fig, ax = plt.subplots(figsize=figsize_wide)
+
+    den, xedges, yedges = np.histogram2d(ra, dec, bins=(nra, ndec))
+    # For bins that are empty set to a very small value
+    w0 = den == 0
+    wn0 = den !=0
+    den[w0] = 1e-6
+    # Apply log scaling
+    den_log = np.log10(den)
+
+
+    ax.pcolormesh(xedges, yedges, den_log.T, cmap= cmap , vmin = np.nanpercentile(den_log[wn0], 10), \
+                vmax = np.nanpercentile(den_log[wn0], 90))
+
+    ax.set_xlim(rev_rar_range)
+    ax.set_ylim(dec_range)
+    ax.set_xlabel('Right Ascension (RA) [deg]', fontsize=fontsize_labels)
+    ax.set_ylabel('Declination (Dec) [deg]', fontsize=fontsize_labels)
+    ax.set_title('All-Sky Density in Equatorial Coordinates', fontsize=fontsize_title)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks, length=tick_length, width=tick_width)
+
+    plt.tight_layout()
+    plt.show()
+    
+
+
     ### ---- Plot 3 ----
     # Create three sample grayscale images (arrays)
     # Bins set up
@@ -1172,8 +1224,9 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
         den, x, y = np.histogram2d(np.array(ra[filter_pm]), np.array(dec[filter_pm]), bins=(nra, ndec))
         wn0 = den !=0
         log_den = np.log10(den)
+
         # Apply log scaling
-        p5, p95 = np.percentile(log_den[wn0], [5, 95])
+        p5, p95 = np.percentile(log_den[wn0], [min_count_color, max_count_color])
         img_cur = np.clip(log_den, p5, p95)
         img_cur = (img_cur - p5) / (p95 - p5)
         # compute the image
@@ -1204,7 +1257,7 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
         wn0 = den !=0
         log_den = np.log10(den)
     # Rescale
-        p5, p95 = np.percentile(log_den[wn0], [5, 95])
+        p5, p95 = np.percentile(log_den[wn0], [min_count_color, max_count_color])
         img_cur = np.clip(log_den, p5, p95)
         img_cur = (img_cur - p5) / (p95 - p5)
     # Combine
@@ -1262,7 +1315,7 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
         den_log[wn0] = np.log10(den[wn0])
 
         # Normalize
-        p5, p95 = np.nanpercentile(den_log[wn0], [5,99])
+        p5, p95 = np.nanpercentile(den_log[wn0], [min_count_color,max_count_color])
         img = np.clip(den_log, p5, p95)
         img = (img - p5) / (p95 - p5)
 
@@ -1277,7 +1330,6 @@ def plot_sky_density_proper_motion(gaia_data, pm_cuts=[1,3.5], cmap="inferno"):
 
     # Add grid and labels
     ax.grid(True, linestyle="dotted", alpha=0.5)
-    ax.set_title("Sky Density with False RGB by Proper Motion ", fontsize=fontsize_title)
 
     tick_labels = ["-150°", "-120°", "-90°", "-60°", "-30°", "0°", "30°", "60°", "90°", "120°", "150°"]
     tick_positions = np.radians([-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150])
@@ -1448,9 +1500,19 @@ def plot_sky_density_proper_motion3(gaia_data, pm_cuts=[1, 3.5], cmap="inferno")
         img = (img - p5) / (p95 - p5)
         images.append(img.T)
 
+
+
     rgb_image = np.dstack((images[0], images[1], images[2]))
+    # Set masked/empty pixels to white
+    mask = (rgb_image.sum(axis=2) < 0.1)
+    rgb_image[mask] = [1.0, 1.0, 1.0]  # RGB for white
+
 
     fig, ax = plt.subplots(figsize=figsize_moll, subplot_kw={'projection': 'mollweide'})
+
+        # Set white background
+    fig.patch.set_facecolor('white')
+    ax.set_facecolor('white')
     mesh = ax.pcolormesh(lon_edges, lat_edges, rgb_image, shading='auto')
 
     ax.grid(True, linestyle="dotted", alpha=0.5)

@@ -99,6 +99,7 @@ WHERE
   gs.parallax BETWEEN -0.1 AND 0.1 AND
   gs.ruwe < 1.4 AND
   (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 16;
+  gs.random_index BETWEEN 0 AND 700000000;
 ```
 ## `Allsky_Gaia_4559940` - Low Propermotion Cut (<12)
 
@@ -120,7 +121,7 @@ WHERE
   gs.ruwe < 1.4 AND
   (gs.pmra * gs.pmra + gs.pmdec * gs.pmdec) < 144 AND
   gd.r_med_photogeo IS NOT NULL AND
-  gs.random_index BETWEEN 0 AND 700000000;
+  gs.random_index BETWEEN 0 AND 400000000;
 ```
 
 
