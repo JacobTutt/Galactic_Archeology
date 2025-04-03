@@ -4,6 +4,25 @@
 - This is provided to allow the analysis in this notebook to be reproduced
 - A skeleton function is provided in `GA_Analysis` for preforming these Queries directly using `Astroquery`.
 
+
+---
+## Google Drive
+A subset of the files used in these notebooks and analysis are presented in the google drive folder: [here](https://drive.google.com/drive/folders/1U32mve6EUdxBUZ1EGjzxJYs5Ny91Q8vb?usp=share_link)
+
+These are mainly post preprocessing files, ie they have the necassary cuts applied as well as colour correction. They therefore do not need to be passed through the Preprocessing pipeline (Notebook 4). 
+Included is the following files:
+- Allsky_Gaia_42481846_extinction_corrected_filtered.fits
+- Allsky_Gaia_45599440_extinction_corrected_filtered.fits
+-	Allsky_Gaia_8910601_rv_extinction_corrected_filtered_galpy.fits
+- M3.fits
+- NGC1851.fits
+- MWCens_DW2020.fit
+- PMGC_vasiliev2019.fit
+- harris2010_mwgc.dat
+
+If any additional data files are needed please contact me and I can provide them on a physical hardrive.
+
+
 ## Explaination of Syntax 
 - the following filters are applied below in various queries, I hope to give an brief overview here.
 
