@@ -602,6 +602,8 @@ def apogee_metallicities(gaia_cluster_json, apogee_fits_path = 'data/ApogeeDR17_
     print(f"\nFiltered Clusters (Matched Stars > {matched_star_threshold} and valid Harris_Fe_H):")
     display(filtered_df)
 
+    return cluster_stats_df
+
 ### RGB Stars filtering
 
 def plot_sky_density_healpy(gaia_data, nside=128, contrast=(5, 95), vmin = 20 , vmax = 40, binning_method="linear", 

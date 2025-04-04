@@ -24,6 +24,7 @@ If any additional data files are needed please contact me and I can provide them
 
 
 ## Explaination of Syntax 
+#### NOTE: not all these cuts were applied initially they are a mix of standard cuts and more advanced cuts which are justified throughout the notebook and Report
 - the following filters are applied below in various queries, I hope to give an brief overview here.
 
 | Filter | Condition | Purpose / Explanation |

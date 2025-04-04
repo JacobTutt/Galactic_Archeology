@@ -7,4 +7,7 @@ GA_CW_Venv_2/
 *.egg-info/
 /build
 dustmaps/
-data/ 
+data/*
+!data/*.json
+!data/*.txt
+olddata/

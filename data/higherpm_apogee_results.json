@@ -1,0 +1,211 @@
+[
+  {
+    "Cluster Name":"NGC 5904",
+    "Matched Stars":23,
+    "Mean Fe_H":-1.1983804703,
+    "Std Dev Fe_H":0.0960996002,
+    "Mean M_H":-1.2158573866,
+    "Std Dev M_H":0.1082930937,
+    "Mean Alpha_M":0.1970061213,
+    "Std Dev Alpha_M":0.076065354,
+    "Harris_Fe_H":-1.29
+  },
+  {
+    "Cluster Name":"NGC 7099",
+    "Matched Stars":0,
+    "Mean Fe_H":null,
+    "Std Dev Fe_H":null,
+    "Mean M_H":null,
+    "Std Dev M_H":null,
+    "Mean Alpha_M":null,
+    "Std Dev Alpha_M":null,
+    "Harris_Fe_H":-2.27
+  },
+  {
+    "Cluster Name":"NGC 6981",
+    "Matched Stars":0,
+    "Mean Fe_H":null,
+    "Std Dev Fe_H":null,
+    "Mean M_H":null,
+    "Std Dev M_H":null,
+    "Mean Alpha_M":null,
+    "Std Dev Alpha_M":null,
+    "Harris_Fe_H":-1.42
+  },
+  {
+    "Cluster Name":"NGC 5272",
+    "Matched Stars":25,
+    "Mean Fe_H":-1.4159045219,
+    "Std Dev Fe_H":0.0790726021,
+    "Mean M_H":-1.4269772768,
+    "Std Dev M_H":0.0908350646,
+    "Mean Alpha_M":0.1627704948,
+    "Std Dev Alpha_M":0.0637943298,
+    "Harris_Fe_H":-1.5
+  },
+  {
+    "Cluster Name":"NGC 5466",
+    "Matched Stars":0,
+    "Mean Fe_H":null,
+    "Std Dev Fe_H":null,
+    "Mean M_H":null,
+    "Std Dev M_H":null,
+    "Mean Alpha_M":null,
+    "Std Dev Alpha_M":null,
+    "Harris_Fe_H":-1.98
+  },
+  {
+    "Cluster Name":"NGC 7089",
+    "Matched Stars":0,
+    "Mean Fe_H":null,
+    "Std Dev Fe_H":null,
+    "Mean M_H":null,
+    "Std Dev M_H":null,
+    "Mean Alpha_M":null,
+    "Std Dev Alpha_M":null,
+    "Harris_Fe_H":-1.65
+  },
+  {
+    "Cluster Name":"NGC 6205",
+    "Matched Stars":10,
+    "Mean Fe_H":-1.5174100399,
+    "Std Dev Fe_H":0.0844772384,
+    "Mean M_H":-1.5091999769,
+    "Std Dev M_H":0.1430046111,
+    "Mean Alpha_M":0.1711046994,
+    "Std Dev Alpha_M":0.0900421813,
+    "Harris_Fe_H":-1.53
+  },
+  {
+    "Cluster Name":"NGC 7078",
+    "Matched Stars":17,
+    "Mean Fe_H":-2.259270668,
+    "Std Dev Fe_H":0.0994001627,
+    "Mean M_H":-2.1543235779,
+    "Std Dev M_H":0.1049721912,
+    "Mean Alpha_M":0.1536261141,
+    "Std Dev Alpha_M":0.123457402,
+    "Harris_Fe_H":-2.37
+  },
+  {
+    "Cluster Name":"NGC 6341",
+    "Matched Stars":4,
+    "Mean Fe_H":-2.1896500587,
+    "Std Dev Fe_H":0.0430315919,
+    "Mean M_H":-2.1441001892,
+    "Std Dev M_H":0.0677070841,
+    "Mean Alpha_M":0.2076937556,
+    "Std Dev Alpha_M":0.1106359363,
+    "Harris_Fe_H":-2.31
+  },
+  {
+    "Cluster Name":"NGC 1904",
+    "Matched Stars":2,
+    "Mean Fe_H":-1.4895499945,
+    "Std Dev Fe_H":0.1236730143,
+    "Mean M_H":-1.4961500168,
+    "Std Dev M_H":0.1487045288,
+    "Mean Alpha_M":0.167798996,
+    "Std Dev Alpha_M":0.0822591558,
+    "Harris_Fe_H":-1.6
+  },
+  {
+    "Cluster Name":"NGC 1851",
+    "Matched Stars":7,
+    "Mean Fe_H":-1.1396514177,
+    "Std Dev Fe_H":0.1000446752,
+    "Mean M_H":-1.1451141834,
+    "Std Dev M_H":0.1158527955,
+    "Mean Alpha_M":0.2229321301,
+    "Std Dev Alpha_M":0.1067885831,
+    "Harris_Fe_H":-1.18
+  },
+  {
+    "Cluster Name":"NGC 1261",
+    "Matched Stars":0,
+    "Mean Fe_H":null,
+    "Std Dev Fe_H":null,
+    "Mean M_H":null,
+    "Std Dev M_H":null,
+    "Mean Alpha_M":null,
+    "Std Dev Alpha_M":null,
+    "Harris_Fe_H":-1.27
+  },
+  {
+    "Cluster Name":"LMC",
+    "Matched Stars":859,
+    "Mean Fe_H":-0.6991938353,
+    "Std Dev Fe_H":0.2713437676,
+    "Mean M_H":-0.7046349049,
+    "Std Dev M_H":0.288598001,
+    "Mean Alpha_M":0.0283991955,
+    "Std Dev Alpha_M":0.063033402,
+    "Harris_Fe_H":null
+  },
+  {
+    "Cluster Name":"SMC",
+    "Matched Stars":252,
+    "Mean Fe_H":-0.9805243015,
+    "Std Dev Fe_H":0.2250587046,
+    "Mean M_H":-0.997138381,
+    "Std Dev M_H":0.2380841523,
+    "Mean Alpha_M":-0.0038652855,
+    "Std Dev Alpha_M":0.0689668059,
+    "Harris_Fe_H":null
+  },
+  {
+    "Cluster Name":"NGC 4590",
+    "Matched Stars":4,
+    "Mean Fe_H":-2.2678251266,
+    "Std Dev Fe_H":0.1390869021,
+    "Mean M_H":-2.2715997696,
+    "Std Dev M_H":0.1244465634,
+    "Mean Alpha_M":0.3329799771,
+    "Std Dev Alpha_M":0.0514515676,
+    "Harris_Fe_H":-2.23
+  },
+  {
+    "Cluster Name":"NGC 362",
+    "Matched Stars":3,
+    "Mean Fe_H":-1.0788332224,
+    "Std Dev Fe_H":0.0415733345,
+    "Mean M_H":-1.086666584,
+    "Std Dev M_H":0.060598217,
+    "Mean Alpha_M":0.1427633315,
+    "Std Dev Alpha_M":0.0661067218,
+    "Harris_Fe_H":-1.26
+  },
+  {
+    "Cluster Name":"NGC 104",
+    "Matched Stars":6,
+    "Mean Fe_H":-0.7286183834,
+    "Std Dev Fe_H":0.0494347326,
+    "Mean M_H":-0.7214066982,
+    "Std Dev M_H":0.0508745797,
+    "Mean Alpha_M":0.2684116662,
+    "Std Dev Alpha_M":0.0203197747,
+    "Harris_Fe_H":-0.72
+  },
+  {
+    "Cluster Name":"NGC 5024",
+    "Matched Stars":4,
+    "Mean Fe_H":-1.8977249861,
+    "Std Dev Fe_H":0.0450782925,
+    "Mean M_H":-1.872025013,
+    "Std Dev M_H":0.0770054981,
+    "Mean Alpha_M":0.2272974998,
+    "Std Dev Alpha_M":0.0712565407,
+    "Harris_Fe_H":-2.1
+  },
+  {
+    "Cluster Name":"NGC 6752",
+    "Matched Stars":9,
+    "Mean Fe_H":-1.5127222538,
+    "Std Dev Fe_H":0.1107012331,
+    "Mean M_H":-1.4970111847,
+    "Std Dev M_H":0.1229375675,
+    "Mean Alpha_M":0.2396005839,
+    "Std Dev Alpha_M":0.0646069944,
+    "Harris_Fe_H":-1.54
+  }
+]
