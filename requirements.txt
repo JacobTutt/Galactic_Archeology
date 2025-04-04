@@ -5,7 +5,6 @@ astropy
 scipy
 healpy
 tqdm
-pickle
 galpy
 dustmaps
 astroquery
