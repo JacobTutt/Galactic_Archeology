@@ -29,6 +29,11 @@ from tqdm import tqdm
 from IPython.display import display
 
 
+from astropy.io import votable
+from astropy.table import Table
+from astropy.io import fits
+
+
 
 
 
@@ -1528,3 +1533,77 @@ def plot_sky_density_proper_motion3(gaia_data, pm_cuts=[1, 3.5], cmap="inferno")
 
     plt.tight_layout()
     plt.show()
+
+
+def investigation_pipeline(filename, pmra_limits, pmdec_limits, label):
+    # ---------------- Load Data ----------------
+    path = f"data_unknown/{filename}"
+    with fits.open(path) as hdul:
+        data = Table(hdul[1].data).to_pandas()
+    
+    display(data.describe())
+    
+    pmra_lo, pmra_hi = pmra_limits
+    pmdec_lo, pmdec_hi = pmdec_limits
+
+    # ---------------- Initial Plots ----------------
+    plt.style.use("seaborn-v0_8-paper")
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # RA-Dec
+    h1 = axes[0].hist2d(data.ra, data.dec, bins=150, cmin=1, cmap="plasma")
+    fig.colorbar(h1[3], ax=axes[0], label="Count")
+    axes[0].set_xlabel("RA (deg)", fontsize=14)
+    axes[0].set_ylabel("Dec (deg)", fontsize=14)
+    axes[0].set_title("Spatial Distribution", fontsize=16)
+
+    # Proper Motion
+    h2 = axes[1].hist2d(data.pmra, data.pmdec, bins=800, cmin=1, range=[[-50, 50], [-60, 60]], cmap="plasma")
+    fig.colorbar(h2[3], ax=axes[1], label="Count")
+    axes[1].set_xlabel(r"PMRA  ($\mu_{\alpha}$)", fontsize=14)
+    axes[1].set_ylabel(r"PMDEC ($\mu_{\delta}$)", fontsize=14)
+    axes[1].set_title("Proper Motion Distribution", fontsize=16)
+    axes[1].set_xlim(-5, 5)
+    axes[1].set_ylim(-7, 2)
+    for line in [pmra_lo, pmra_hi]:
+        axes[1].axvline(line, color="red", linestyle="--", linewidth=2)
+    for line in [pmdec_lo, pmdec_hi]:
+        axes[1].axhline(line, color="red", linestyle="--", linewidth=2)
+    axes[1].legend(["Selection Limits"], fontsize=10)
+
+    plt.tight_layout()
+    plt.show()
+
+    # ---------------- Dereddening ----------------
+    data_dered = reddening_correction(data)
+
+    # ---------------- Proper Motion Filter ----------------
+    filtered = data_dered[
+        (data_dered.pmra > pmra_lo) & (data_dered.pmra < pmra_hi) &
+        (data_dered.pmdec > pmdec_lo) & (data_dered.pmdec < pmdec_hi)
+    ]
+
+    # ---------------- Final Plots ----------------
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6), dpi=600)
+
+    # RA vs Dec
+    axes[0].scatter(data.ra, data.dec, c="gray", s=6, alpha=1, label="All Stars")
+    axes[0].scatter(filtered.ra, filtered.dec, c="red", s=6, label="Cluster Stars")
+    axes[0].set_xlabel("RA [deg]", fontsize=18)
+    axes[0].set_ylabel("Dec [deg]", fontsize=18)
+    axes[0].legend(fontsize=14, loc="upper left")
+    axes[0].set_title(f"RA-Dec Distribution: {label}", fontsize=20)
+
+    # CMD
+    axes[1].scatter(data_dered.dered_BP - data_dered.dered_RP, data_dered.dered_G, c="gray", s=6, alpha=1, label="All Stars")
+    axes[1].scatter(filtered.dered_BP - filtered.dered_RP, filtered.dered_G, c="red", s=6, label="Cluster Stars")
+    axes[1].set_xlabel("BP - RP", fontsize=18)
+    axes[1].set_ylabel("Apparent Magnitude", fontsize=18)
+    axes[1].legend(fontsize=14, loc="upper left")
+    axes[1].set_title(f"CMD: {label}", fontsize=20)
+    axes[1].invert_yaxis()
+
+    plt.tight_layout()
+    plt.show()
+
+    return filtered
