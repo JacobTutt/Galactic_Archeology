@@ -10,4 +10,5 @@ dustmaps/
 data/*
 !data/*.json
 !data/*.txt
+!data/*.md
 olddata/
